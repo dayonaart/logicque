@@ -56,21 +56,22 @@ object Fav {
       horizontalAlignment = Alignment.CenterHorizontally
     ) {
       Text(text = "LIKE POST")
-      Box(
-        modifier = Modifier
-          .border(width = 1.dp, color = Color.Gray, shape = RoundedCornerShape(10.dp))
-          .padding(10.dp)
-      ) {
-        FlowRow(maxItemsInEachRow = 3, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-          tags.forEach {
-            ElevatedButton(onClick = {
-              mainViewModel.filterLikes(it.trim())
-            }) {
-              Text(text = it)
+      if (tags.isNotEmpty())
+        Box(
+          modifier = Modifier
+            .border(width = 1.dp, color = Color.Gray, shape = RoundedCornerShape(10.dp))
+            .padding(10.dp)
+        ) {
+          FlowRow(maxItemsInEachRow = 3, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            tags.forEach {
+              ElevatedButton(onClick = {
+                mainViewModel.filterLikes(it.trim())
+              }) {
+                Text(text = it)
+              }
             }
           }
         }
-      }
       10.SpaceHeight()
       HorizontalDivider(thickness = 2.dp)
       10.SpaceHeight()
