@@ -1,6 +1,5 @@
 package id.test.logicque.ui
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
@@ -10,7 +9,6 @@ import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -19,13 +17,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color.Companion.Blue
-import androidx.compose.ui.graphics.Color.Companion.Cyan
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import id.test.logicque.MainModel
-import id.test.logicque.MainModel.mainViewModel
 
 data class TabBarIconItem(
   val title: String,
@@ -70,8 +64,8 @@ fun TabView(
             isSelected = selectedTabIndex == index
           )
         },
-        colors = NavigationBarItemDefaults.colors()
-          .copy(selectedIconColor = if (mainViewModel.darkMode) Cyan else Blue)
+//        colors = NavigationBarItemDefaults.colors()
+//          .copy(selectedIconColor = if (mainViewModel.darkMode) Cyan else Blue)
       )
     }
   }

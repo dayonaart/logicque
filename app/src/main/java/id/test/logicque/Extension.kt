@@ -2,6 +2,7 @@ package id.test.logicque
 
 import android.annotation.SuppressLint
 import java.text.SimpleDateFormat
+import java.util.Locale
 
 @SuppressLint("SimpleDateFormat")
 fun String.dateFormatter(): String {
@@ -11,4 +12,8 @@ fun String.dateFormatter(): String {
     return formatter.format(date)
   }
   return ""
+}
+
+fun String.capitalizes(): String {
+  return this.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ROOT) else it.toString() }
 }

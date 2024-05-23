@@ -8,45 +8,72 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.room.Database
+import androidx.room.Room
+import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
+import id.logicque.microservices.MicroService
+import id.logicque.microservices.data.DataItem
+import id.logicque.microservices.data.UserDetail
+import id.logicque.microservices.data.userpost.PostData
+import id.logicque.microservices.data.userpost.UserPost
 import id.logicque.microservices.network.CoreError
 import id.logicque.microservices.network.CoreException
 import id.logicque.microservices.network.CoreSuccess
 import id.logicque.microservices.network.CoreTimeout
 import id.logicque.microservices.network.Loading
-import id.logicque.microservices.MicroService
-import id.logicque.microservices.data.DataItem
-import id.logicque.microservices.data.UserDetail
-import id.logicque.microservices.data.userpost.DataItems
-import id.logicque.microservices.data.userpost.UserPost
+import id.test.logicque.MainModel.database
+import id.test.logicque.dao.DatabaseDao
+import id.test.logicque.dao.Friend
+import id.test.logicque.dao.Likes
+import id.test.logicque.dao.TypeConverter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
+
+@Database(entities = [Friend::class, Likes::class], version = 1)
+@TypeConverters(TypeConverter::class)
+abstract class AppDatabase : RoomDatabase() {
+  abstract fun databaseDao(): DatabaseDao
+}
+
 object MainModel {
   lateinit var mainViewModel: MainViewModel
+  lateinit var database: AppDatabase
 }
 
 class MainViewModel : ViewModel() {
   private val microService = MicroService()
   var user by mutableStateOf<List<DataItem?>>(listOf())
   var userDetail by mutableStateOf<UserDetail?>(null)
-  var userPost by mutableStateOf<UserPost?>(null)
-  var userPostFilter by mutableStateOf<UserPost?>(null)
-  var postLikeList by mutableStateOf<List<DataItems?>>(listOf())
+  private var userPost by mutableStateOf<UserPost?>(null)
+  var filterUserPost by mutableStateOf<UserPost?>(null)
   var getUserLoading by mutableStateOf(true)
   var getUserDetailLoading by mutableStateOf(true)
+  var getUserPostLoading by mutableStateOf(true)
   private var userLimit by mutableIntStateOf(0)
   private var page by mutableIntStateOf(0)
   var searchController by mutableStateOf("")
   var darkMode by mutableStateOf(false)
-
+  var likeList by mutableStateOf<List<Likes>>(listOf())
+  var filterLikeList by mutableStateOf<List<Likes>>(listOf())
+  var listFriend by mutableStateOf<List<Friend>>(listOf())
   fun changeTheme() {
     darkMode = !darkMode
   }
 
-  fun init() {
+  fun init(context: Context) {
     MainModel.mainViewModel = this
+    database = Room.databaseBuilder(
+      context,
+      AppDatabase::class.java, "User"
+    ).allowMainThreadQueries().build()
+    getUser()
+    likeList = database.databaseDao().getAllLikes()
+    filterLikeList = likeList
+    listFriend = database.databaseDao().getAllFriend()
   }
 
   private fun getUser() {
@@ -66,7 +93,6 @@ class MainViewModel : ViewModel() {
           is CoreSuccess -> {
             user += it.data.data!!
             userLimit = it.data.total!!
-            microService.repository.saveUserList(user)
             delay(1000)
             getUserLoading = false
           }
@@ -89,17 +115,14 @@ class MainViewModel : ViewModel() {
 
   fun getUserDetail(id: String) {
     viewModelScope.launch(Dispatchers.IO) {
-      userPostFilter = null
       searchController = ""
       microService.repository.getUserDetail(id).collectLatest {
         when (it) {
           is CoreError -> {}
           is CoreException -> {}
           is CoreSuccess -> {
-            val hasFriend = microService.repository.readFriendList()
-              .find { f -> f?.firstName == it.data.firstName } != null
-            userDetail = it.data.copy(hasFriend = hasFriend)
-            getUserPost(id)
+            userDetail = it.data
+            getUserDetailLoading = false
           }
 
           CoreTimeout -> {}
@@ -116,90 +139,77 @@ class MainViewModel : ViewModel() {
   }
 
   fun onSearchPost(context: Context) {
-    val filter =
-      userPost?.data?.filter { it?.text?.startsWith(searchController, ignoreCase = true) ?: false }
-    if (filter?.isEmpty() == true) {
-      Toast.makeText(context, "not found", Toast.LENGTH_SHORT).show()
-      userPostFilter = null
+    val find = userPost?.data?.filter { it?.text?.startsWith(searchController) ?: false }
+    if (find?.isEmpty() == true) {
+      filterUserPost = userPost
+      Toast.makeText(context, "Not Found", Toast.LENGTH_SHORT).show()
       return
     }
-    userPostFilter = userPost?.copy(data = filter)
+    filterUserPost = filterUserPost?.copy(data = find)
+    Toast.makeText(context, "Found ${find?.size} post", Toast.LENGTH_SHORT).show()
   }
 
-  fun addFriend(data: UserDetail?) {
-    viewModelScope.launch(Dispatchers.IO) {
-      microService.repository.addFriend(data)
-      userDetail = data?.copy(hasFriend = true)
-    }
-  }
-
-  fun removeFriend(data: UserDetail?) {
-    viewModelScope.launch(Dispatchers.IO) {
-      microService.repository.removeFriend(data)
-      userDetail = data?.copy(hasFriend = false)
-    }
-  }
-
-  private fun getUserPost(id: String) {
+  fun getUserPost(id: String) {
     viewModelScope.launch(Dispatchers.IO) {
       microService.repository.getUserPost(id).collectLatest {
         when (it) {
           is CoreError -> {}
           is CoreException -> {}
           is CoreSuccess -> {
-            val existingLike = microService.repository.readLikeUserPost()
-            val like = it.data?.data?.map { d ->
-              val i = existingLike.indexOf(d)
-              if (i != -1) {
-                existingLike[i]?.copy(hasLike = true)
-              } else {
-                d
-              }
-            }
-            userPost = it.data?.copy(data = like)
-            delay(1000)
-            getUserDetailLoading = false
+            userPost = it.data
+            filterUserPost = it.data
+            getUserPostLoading = false
           }
 
           CoreTimeout -> {}
           Loading -> {
+            getUserPostLoading = true
           }
         }
       }
     }
   }
 
-  fun likePost(data: DataItems?) {
+  fun addFriend(userId: String?, data: UserDetail?) {
     viewModelScope.launch(Dispatchers.IO) {
-      microService.repository.likeUserPost(data)
-      val like = userPost?.data?.map { d ->
-        val compare = data == d
-        if (compare) {
-          d?.copy(hasLike = true, likes = (d.likes ?: 0) + 1)
-        } else {
-          d
-        }
+      try {
+        database.databaseDao().insertFriend(Friend(userId = "$userId", user = data))
+        listFriend = database.databaseDao().getAllFriend()
+      } catch (_: Exception) {
       }
-      userPost = userPost?.copy(data = like)
     }
   }
 
-  fun unlikePost(data: DataItems?) {
+  fun removeFriend(userId: String?) {
     viewModelScope.launch(Dispatchers.IO) {
-      microService.repository.unLikeUserPost(data)
-      val like = userPost?.data?.map { d ->
-        val compare = data == d
-        if (compare) {
-          d?.copy(hasLike = false, likes = (d.likes ?: 0) - 1)
-        } else {
-          d
-        }
+      try {
+        database.databaseDao().deleteFriend(Friend(userId = "$userId"))
+        listFriend = database.databaseDao().getAllFriend()
+      } catch (_: Exception) {
       }
-      userPost = userPost?.copy(data = like)
     }
   }
 
-  suspend fun getPostLike() {
-    postLikeList = microService.repository.readLikeUserPost()
+  fun like(postId: String?, data: PostData?) {
+    viewModelScope.launch(Dispatchers.IO) {
+      try {
+        database.databaseDao()
+          .insertLike(Likes(uid = "$postId", postData = data))
+        likeList = database.databaseDao().getAllLikes()
+      } catch (_: Exception) {
+      }
+    }
+  }
+
+  fun unlike(postId: String?) {
+    viewModelScope.launch(Dispatchers.IO) {
+      database.databaseDao().unlike(Likes(uid = "$postId"))
+      likeList = database.databaseDao().getAllLikes()
+    }
+  }
+
+  fun filterLikes(key: String) {
+    val find = likeList.filter { it.postData?.tags?.contains(key) ?: false }
+    filterLikeList = find
   }
 }

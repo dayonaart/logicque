@@ -1,6 +1,7 @@
 plugins {
   alias(libs.plugins.android.application)
   alias(libs.plugins.jetbrains.kotlin.android)
+  alias(libs.plugins.dev.ksp)
 }
 
 android {
@@ -66,6 +67,9 @@ dependencies {
   implementation(libs.androidx.navigation.compose)
   implementation(libs.gson)
   implementation(libs.coil.compose)
-  implementation(libs.coil.gif)
+  implementation(libs.androidx.room.runtime)
+  annotationProcessor(libs.room.compiler)
+  ksp(libs.androidx.room.compiler)
+  implementation(libs.compose.shimmer)
   implementation(project(":microservices"))
 }

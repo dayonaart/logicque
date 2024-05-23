@@ -4,7 +4,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import id.logicque.microservices.data.DataItem
 import id.logicque.microservices.data.UserDetail
-import id.logicque.microservices.data.userpost.DataItems
+import id.logicque.microservices.data.userpost.PostData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -78,7 +78,7 @@ internal object Utilities {
   }
 
 
-  internal suspend fun saveLikePost(data: List<DataItems?>) {
+  internal suspend fun saveLikePost(data: List<PostData?>) {
     try {
       val writer = withContext(Dispatchers.IO) {
         FileWriter(EXTERNAL_FILE_LIKE_DB)
@@ -95,10 +95,10 @@ internal object Utilities {
     }
   }
 
-  internal fun readLikePost(): List<DataItems?> {
+  internal fun readLikePost(): List<PostData?> {
     return try {
-      val data: List<DataItems?> = Gson().fromJson(
-        EXTERNAL_FILE_LIKE_DB.readText(), object : TypeToken<List<DataItems?>>() {}.type
+      val data: List<PostData?> = Gson().fromJson(
+        EXTERNAL_FILE_LIKE_DB.readText(), object : TypeToken<List<PostData?>>() {}.type
       )
       data.filterNotNull().toSet().toList()
     } catch (e: Exception) {

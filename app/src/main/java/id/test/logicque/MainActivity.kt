@@ -47,12 +47,10 @@ class MainActivity : ComponentActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    mainViewModel.init()
-    //Must be initialize database
-    println(this.getExternalFilesDirs("database").map { it })
+    mainViewModel.init(this)
     setContent {
       val navController = rememberNavController()
-      LogicqueTheme(darkTheme = mainViewModel.darkMode) {
+      LogicqueTheme {
         Scaffold(
           bottomBar = { TabView(tabBarItems, navController) }, modifier = Modifier.fillMaxSize()
         ) { innerPad ->
@@ -61,6 +59,9 @@ class MainActivity : ComponentActivity() {
               Home.View(innerPad = innerPad, navController = navController)
             }
             composable(feedTab.title) {
+              Fav.View(innerPad = innerPad)
+            }
+            composable(settingsTab.title) {
               Column(
                 modifier = Modifier
                   .padding(innerPad)
@@ -74,9 +75,6 @@ class MainActivity : ComponentActivity() {
                   Text(text = if (mainViewModel.darkMode) "Light Mode" else "Dark Mode")
                 }
               }
-            }
-            composable(settingsTab.title) {
-              Fav.View(innerPad = innerPad)
             }
             composable(
               "user_detail",

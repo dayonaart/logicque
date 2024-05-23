@@ -6,14 +6,14 @@ data class UserPost(
 
   @field:SerializedName("total") val total: Int? = null,
 
-  @field:SerializedName("data") val data: List<DataItems?>? = null,
+  @field:SerializedName("data") val data: List<PostData?>? = null,
 
   @field:SerializedName("limit") val limit: Int? = null,
 
   @field:SerializedName("page") val page: Int? = null,
 )
 
-data class DataItems(
+data class PostData(
 
   @field:SerializedName("owner") val owner: Owner? = null,
 
@@ -28,9 +28,6 @@ data class DataItems(
   @field:SerializedName("likes") val likes: Int? = null,
 
   @field:SerializedName("tags") val tags: List<String?>? = null,
-
-  @field:SerializedName("has_like") val hasLike: Boolean = false
-
 )
 
 data class Owner(

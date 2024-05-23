@@ -1,18 +1,14 @@
 package id.logicque.microservices.repository
 
-import com.google.gson.Gson
-import id.logicque.microservices.Utilities
-import id.logicque.microservices.data.DataItem
+import id.logicque.microservices.data.User
+import id.logicque.microservices.data.UserDetail
+import id.logicque.microservices.data.userpost.UserPost
 import id.logicque.microservices.network.Core
 import id.logicque.microservices.network.CoreError
 import id.logicque.microservices.network.CoreException
 import id.logicque.microservices.network.CoreSuccess
 import id.logicque.microservices.network.CoreTimeout
 import id.logicque.microservices.network.Loading
-import id.logicque.microservices.data.User
-import id.logicque.microservices.data.UserDetail
-import id.logicque.microservices.data.userpost.DataItems
-import id.logicque.microservices.data.userpost.UserPost
 import id.logicque.microservices.network.Module
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -77,32 +73,6 @@ class Repoimpl : Repository {
     }.flowOn(Dispatchers.IO)
   }
 
-  override suspend fun saveUserList(data: List<DataItem?>) {
-    Utilities.saveUserList(Gson().toJson(data))
-  }
-
-  override fun readUserList(): List<DataItem?> {
-    return Utilities.readUserList()
-  }
-
-  override suspend fun addFriend(data: UserDetail?) {
-    val existing = Utilities.readFriendList().toMutableList()
-    existing += data
-    Utilities.addFriend(existing)
-    println("ADDED ${data?.firstName}")
-  }
-
-  override suspend fun removeFriend(data: UserDetail?) {
-    val existing = Utilities.readFriendList().toMutableList()
-    val removed = existing.filter { it?.firstName != data?.firstName }
-    Utilities.addFriend(removed)
-    println("REMOVED ${removed.map { data?.firstName }}")
-  }
-
-  override suspend fun readFriendList(): List<UserDetail?> {
-    return Utilities.readFriendList()
-  }
-
   override fun getUserPost(id: String): Flow<Core<UserPost?>> {
     return flow {
       try {
@@ -129,19 +99,4 @@ class Repoimpl : Repository {
     }
   }
 
-  override suspend fun likeUserPost(data: DataItems?) {
-    val existing = Utilities.readLikePost().toMutableList()
-    existing += data
-    Utilities.saveLikePost(existing)
-  }
-
-  override suspend fun unLikeUserPost(data: DataItems?) {
-    val existing = Utilities.readLikePost().toMutableList()
-    val removed = existing.filter { it?.id != data?.id }
-    Utilities.saveLikePost(removed)
-  }
-
-  override suspend fun readLikeUserPost(): List<DataItems?> {
-    return Utilities.readLikePost()
-  }
 }
