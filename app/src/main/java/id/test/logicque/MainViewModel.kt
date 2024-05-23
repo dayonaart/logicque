@@ -196,6 +196,7 @@ class MainViewModel : ViewModel() {
         database.databaseDao()
           .insertLike(Likes(uid = "$postId", postData = data))
         likeList = database.databaseDao().getAllLikes()
+        filterLikeList = likeList
       } catch (_: Exception) {
       }
     }
@@ -205,6 +206,7 @@ class MainViewModel : ViewModel() {
     viewModelScope.launch(Dispatchers.IO) {
       database.databaseDao().unlike(Likes(uid = "$postId"))
       likeList = database.databaseDao().getAllLikes()
+      filterLikeList = likeList
     }
   }
 
