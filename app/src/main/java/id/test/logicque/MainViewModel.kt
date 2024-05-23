@@ -13,7 +13,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import id.logicque.microservices.MicroService
-import id.logicque.microservices.data.DataItem
+import id.logicque.microservices.data.User
 import id.logicque.microservices.data.UserDetail
 import id.logicque.microservices.data.userpost.PostData
 import id.logicque.microservices.data.userpost.UserPost
@@ -46,15 +46,20 @@ object MainModel {
 
 class MainViewModel : ViewModel() {
   private val microService = MicroService()
-  var user by mutableStateOf<List<DataItem?>>(listOf())
+  var user by mutableStateOf<User?>(null)
   var userDetail by mutableStateOf<UserDetail?>(null)
   private var userPost by mutableStateOf<UserPost?>(null)
   var filterUserPost by mutableStateOf<UserPost?>(null)
+  private var post by mutableStateOf<UserPost?>(null)
+  var filterPost by mutableStateOf<UserPost?>(null)
   var getUserLoading by mutableStateOf(true)
   var getUserDetailLoading by mutableStateOf(true)
   var getUserPostLoading by mutableStateOf(true)
+  var getPostLoading by mutableStateOf(true)
   private var userLimit by mutableIntStateOf(0)
-  private var page by mutableIntStateOf(0)
+  private var postLimit by mutableIntStateOf(0)
+  var userPage by mutableIntStateOf(0)
+  var postPage by mutableIntStateOf(0)
   var searchController by mutableStateOf("")
   var darkMode by mutableStateOf(false)
   var likeList by mutableStateOf<List<Likes>>(listOf())
@@ -71,16 +76,19 @@ class MainViewModel : ViewModel() {
       AppDatabase::class.java, "User"
     ).allowMainThreadQueries().build()
     getUser()
+    getPost()
     likeList = database.databaseDao().getAllLikes()
     filterLikeList = likeList
     listFriend = database.databaseDao().getAllFriend()
   }
 
-  private fun getUser() {
+  fun getUser(next: Boolean = false) {
     viewModelScope.launch(Dispatchers.IO) {
-      if (user.size >= userLimit && user.isNotEmpty()) return@launch
-      if (user.size >= 20) page++
-      microService.repository.getUsers(page = page, limit = 20).collectLatest {
+      if (next) userPage++
+      else {
+        if (userPage != 0) userPage--
+      }
+      microService.repository.getUsers(page = userPage).collectLatest {
         when (it) {
           is CoreError -> {
             println(it.message)
@@ -91,7 +99,7 @@ class MainViewModel : ViewModel() {
           }
 
           is CoreSuccess -> {
-            user += it.data.data!!
+            user = it.data
             userLimit = it.data.total!!
             delay(1000)
             getUserLoading = false
@@ -109,9 +117,6 @@ class MainViewModel : ViewModel() {
     }
   }
 
-  fun extendUser() {
-    getUser()
-  }
 
   fun getUserDetail(id: String) {
     viewModelScope.launch(Dispatchers.IO) {
@@ -139,7 +144,8 @@ class MainViewModel : ViewModel() {
   }
 
   fun onSearchPost(context: Context) {
-    val find = userPost?.data?.filter { it?.text?.startsWith(searchController) ?: false }
+    val find =
+      userPost?.data?.filter { it?.text?.contains(searchController, ignoreCase = true) ?: false }
     if (find?.isEmpty() == true) {
       filterUserPost = userPost
       Toast.makeText(context, "Not Found", Toast.LENGTH_SHORT).show()
@@ -169,6 +175,33 @@ class MainViewModel : ViewModel() {
       }
     }
   }
+
+  fun getPost(next: Boolean = false) {
+    viewModelScope.launch(Dispatchers.IO) {
+      if (next) postPage++
+      else {
+        if (postPage != 0) postPage--
+      }
+      microService.repository.getPost(page = postPage).collectLatest {
+        when (it) {
+          is CoreError -> {}
+          is CoreException -> {}
+          is CoreSuccess -> {
+            post = it.data
+            postLimit = it.data.total!!
+            filterPost = post
+            getPostLoading = false
+          }
+
+          CoreTimeout -> {}
+          Loading -> {
+            getPostLoading = true
+          }
+        }
+      }
+    }
+  }
+
 
   fun addFriend(userId: String?, data: UserDetail?) {
     viewModelScope.launch(Dispatchers.IO) {
@@ -213,5 +246,12 @@ class MainViewModel : ViewModel() {
   fun filterLikes(key: String) {
     val find = likeList.filter { it.postData?.tags?.contains(key) ?: false }
     filterLikeList = find
+  }
+
+  fun test() {
+    val d =
+      filterLikeList.map { it.postData?.tags?.joinToString()?.trim() }.joinToString()
+        .replace(" ", "").split(",").toSet().toList()
+    println(d)
   }
 }

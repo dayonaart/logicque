@@ -47,6 +47,32 @@ class Repoimpl : Repository {
     }.flowOn(Dispatchers.IO)
   }
 
+  override fun getPost(page: Int, limit: Int): Flow<Core<UserPost>> {
+    return flow {
+      try {
+        emit(Loading)
+        val res = Module.repo().getPost(page, limit)
+        if (!res.isSuccessful) {
+          emit(CoreError(message = res.message(), code = res.code()))
+          return@flow
+        }
+        emit(CoreSuccess(data = res.body()!!))
+      } catch (e: SocketTimeoutException) {
+        emit(CoreTimeout)
+      } catch (e: SocketException) {
+        emit(CoreException(e = "${e.message}"))
+      } catch (e: UnknownHostException) {
+        emit(CoreException(e = "${e.message}"))
+      } catch (e: IOException) {
+        emit(CoreException(e = "${e.message}"))
+      } catch (e: HttpException) {
+        emit(CoreException(e = "${e.message}"))
+      } catch (e: Exception) {
+        emit(CoreException(e = "${e.message}"))
+      }
+    }.flowOn(Dispatchers.IO)
+  }
+
   override fun getUserDetail(id: String): Flow<Core<UserDetail>> {
     return flow {
       try {
@@ -73,11 +99,11 @@ class Repoimpl : Repository {
     }.flowOn(Dispatchers.IO)
   }
 
-  override fun getUserPost(id: String): Flow<Core<UserPost?>> {
+  override fun getUserPost(id: String, limit: Int): Flow<Core<UserPost?>> {
     return flow {
       try {
         emit(Loading)
-        val res = Module.repo().getUserPost(id)
+        val res = Module.repo().getUserPost(id, limit)
         if (!res.isSuccessful) {
           emit(CoreError(message = res.message(), code = res.code()))
           return@flow

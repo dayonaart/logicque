@@ -3,24 +3,19 @@ package id.test.logicque
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import id.test.logicque.ui.Fav
+import id.test.logicque.ui.Feed
 import id.test.logicque.ui.Home
 import id.test.logicque.ui.TabBarIconItem
 import id.test.logicque.ui.TabView
@@ -59,22 +54,10 @@ class MainActivity : ComponentActivity() {
               Home.View(innerPad = innerPad, navController = navController)
             }
             composable(feedTab.title) {
-              Fav.View(innerPad = innerPad)
+              Feed.View(innerPad = innerPad)
             }
             composable(settingsTab.title) {
-              Column(
-                modifier = Modifier
-                  .padding(innerPad)
-                  .fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-              ) {
-                ElevatedButton(onClick = {
-                  mainViewModel.changeTheme()
-                }) {
-                  Text(text = if (mainViewModel.darkMode) "Light Mode" else "Dark Mode")
-                }
-              }
+              Fav.View(innerPad = innerPad)
             }
             composable(
               "user_detail",

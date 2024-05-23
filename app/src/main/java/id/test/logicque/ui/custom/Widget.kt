@@ -3,9 +3,11 @@ package id.test.logicque.ui.custom
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -19,21 +21,27 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.valentinilk.shimmer.shimmer
+import kotlin.math.max
 
 
 @Composable
@@ -184,4 +192,72 @@ fun Int.SpaceHeight() {
 @Composable
 fun Int.SpaceWidth() {
   Spacer(modifier = Modifier.width(this.dp))
+}
+
+fun Modifier.verticalScrollbar(
+  scrollState: ScrollState,
+  scrollBarWidth: Dp = 4.dp,
+  minScrollBarHeight: Dp = 5.dp,
+  scrollBarColor: Color = Color.Blue,
+  cornerRadius: Dp = 2.dp
+): Modifier = composed {
+  val targetAlpha = if (scrollState.isScrollInProgress) 1f else 0f
+  val duration = if (scrollState.isScrollInProgress) 150 else 500
+
+  val alpha by animateFloatAsState(
+    targetValue = targetAlpha,
+    animationSpec = tween(durationMillis = duration), label = ""
+  )
+  drawWithContent {
+    drawContent()
+    val needDrawScrollbar = scrollState.isScrollInProgress || alpha > 0.0f
+    if (needDrawScrollbar && scrollState.maxValue > 0) {
+      val visibleHeight: Float = this.size.height - scrollState.maxValue
+      val scrollBarHeight: Float =
+        max(visibleHeight * (visibleHeight / this.size.height), minScrollBarHeight.toPx())
+      val scrollPercent: Float = scrollState.value.toFloat() / scrollState.maxValue
+      val scrollBarOffsetY: Float =
+        scrollState.value + (visibleHeight - scrollBarHeight) * scrollPercent
+
+      drawRoundRect(
+        color = scrollBarColor,
+        topLeft = Offset(this.size.width - scrollBarWidth.toPx(), scrollBarOffsetY),
+        size = Size(scrollBarWidth.toPx(), scrollBarHeight),
+        alpha = alpha,
+        cornerRadius = CornerRadius(cornerRadius.toPx())
+      )
+    }
+  }
+}
+
+@Composable
+fun Modifier.verticalGridScrollbar(
+  state: LazyGridState,
+  width: Dp = 8.dp
+): Modifier {
+  val targetAlpha = if (state.isScrollInProgress) 1f else 0f
+  val duration = if (state.isScrollInProgress) 150 else 500
+
+  val alpha by animateFloatAsState(
+    targetValue = targetAlpha,
+    animationSpec = tween(durationMillis = duration), label = ""
+  )
+  return drawWithContent {
+    drawContent()
+    val firstVisibleElementIndex = state.layoutInfo.visibleItemsInfo.firstOrNull()?.index
+    val needDrawScrollbar = state.isScrollInProgress || alpha > 0.0f
+
+    if (needDrawScrollbar && firstVisibleElementIndex != null) {
+      val elementHeight = this.size.height / state.layoutInfo.totalItemsCount
+      val scrollbarOffsetY = firstVisibleElementIndex * elementHeight
+      val scrollbarHeight = state.layoutInfo.visibleItemsInfo.size * elementHeight
+      drawRoundRect(
+        color = Color.Red,
+        topLeft = Offset(this.size.width - width.toPx(), scrollbarOffsetY),
+        size = Size(width.toPx(), scrollbarHeight),
+        alpha = alpha,
+        cornerRadius = CornerRadius(10.dp.toPx())
+      )
+    }
+  }
 }
