@@ -99,11 +99,11 @@ class Repoimpl : Repository {
     }.flowOn(Dispatchers.IO)
   }
 
-  override fun getUserPost(id: String, limit: Int): Flow<Core<UserPost?>> {
+  override fun getUserPost(id: String, page: Int, limit: Int): Flow<Core<UserPost?>> {
     return flow {
       try {
         emit(Loading)
-        val res = Module.repo().getUserPost(id, limit)
+        val res = Module.repo().getUserPost(id, page, limit)
         if (!res.isSuccessful) {
           emit(CoreError(message = res.message(), code = res.code()))
           return@flow

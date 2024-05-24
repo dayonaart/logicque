@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -47,7 +48,8 @@ class MainActivity : ComponentActivity() {
       val navController = rememberNavController()
       LogicqueTheme {
         Scaffold(
-          bottomBar = { TabView(tabBarItems, navController) }, modifier = Modifier.fillMaxSize()
+          bottomBar = { TabView(tabBarItems, navController, tabHeight = 70.dp) },
+          modifier = Modifier.fillMaxSize()
         ) { innerPad ->
           NavHost(navController = navController, startDestination = homeTab.title) {
             composable(homeTab.title) {

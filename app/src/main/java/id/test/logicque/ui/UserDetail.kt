@@ -1,5 +1,6 @@
 package id.test.logicque.ui
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -7,18 +8,18 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.List
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ElevatedButton
@@ -27,6 +28,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,28 +50,59 @@ import id.test.logicque.ui.custom.UserPostView
 import id.test.logicque.ui.theme.Typography
 
 object UserDetail {
+  @OptIn(ExperimentalFoundationApi::class)
   @Composable
   fun View(innerPad: PaddingValues) {
-    val scrollState = rememberScrollState()
     Scaffold(modifier = Modifier
       .padding(innerPad)
-      .padding(start = 10.dp, end = 10.dp), topBar = {
+      .padding(horizontal = 20.dp), topBar = {
       SearchField()
     }) { ip ->
-      Column(
+      UserPostView(
         modifier = Modifier
-          .fillMaxSize()
           .padding(ip)
-          .verticalScroll(scrollState),
-      ) {
-        UserProfile()
-        Spacer(modifier = Modifier.height(20.dp))
-        UserInfo()
-        Spacer(modifier = Modifier.height(10.dp))
-        HorizontalDivider()
-        Spacer(modifier = Modifier.height(10.dp))
-        UserPostView(scrollState, mainViewModel.filterUserPost, mainViewModel.getUserPostLoading)
-      }
+          .wrapContentHeight(),
+        post = mainViewModel.filterUserPost,
+        loading = mainViewModel.getUserPostLoading,
+        header = {
+          UserProfile()
+          Spacer(modifier = Modifier.height(20.dp))
+          UserInfo()
+          Spacer(modifier = Modifier.height(10.dp))
+          HorizontalDivider()
+          Spacer(modifier = Modifier.height(10.dp))
+        }, footer = {
+          Box(
+            modifier = Modifier.border(
+              width = 1.dp,
+              color = Color.Gray,
+              shape = RoundedCornerShape(20.dp)
+            )
+          ) {
+            LazyRow(
+              horizontalArrangement = Arrangement.Center,
+              verticalAlignment = Alignment.CenterVertically,
+              modifier = Modifier.fillMaxWidth()
+            ) {
+              stickyHeader {
+                Icon(imageVector = Icons.AutoMirrored.Rounded.List, contentDescription = "list")
+              }
+              items(mainViewModel.userPostLimit.div(20) + 1) {
+                TextButton(
+                  onClick = {
+                    mainViewModel.existingUserPostPage = it
+                    mainViewModel.getUserPost("${mainViewModel.userDetail?.id}")
+                  }) {
+                  Text(
+                    text = "${it + 1}",
+                    color = if (mainViewModel.existingUserPostPage == it) Color.Green else Color.Gray
+                  )
+                }
+              }
+            }
+          }
+        }
+      )
     }
   }
 
@@ -93,7 +126,7 @@ object UserDetail {
       },
       modifier = Modifier
         .fillMaxWidth()
-        .padding(start = 20.dp, end = 20.dp, top = 20.dp),
+        .padding(vertical = 20.dp),
       value = mainViewModel.searchController,
       onValueChange = mainViewModel::onSearchPostChange,
       shape = RoundedCornerShape(25.dp),

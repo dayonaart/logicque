@@ -20,7 +20,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyItemScope
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyGridItemScope
+import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
@@ -260,4 +265,16 @@ fun Modifier.verticalGridScrollbar(
       )
     }
   }
+}
+
+fun LazyGridScope.sticky(
+  content: @Composable LazyGridItemScope.() -> Unit
+) {
+  item(span = { GridItemSpan(this.maxLineSpan) }, content = content)
+}
+
+fun LazyListScope.sticky(
+  content: @Composable LazyItemScope.() -> Unit
+) {
+  item(content = { content() })
 }

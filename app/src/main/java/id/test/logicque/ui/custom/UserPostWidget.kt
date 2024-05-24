@@ -1,6 +1,7 @@
 package id.test.logicque.ui.custom
 
-import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -13,14 +14,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Favorite
-import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,19 +34,29 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import id.logicque.microservices.data.userpost.PostData
 import id.logicque.microservices.data.userpost.UserPost
-import id.test.logicque.MainModel
+import id.test.logicque.MainModel.mainViewModel
 import id.test.logicque.dateFormatter
 import id.test.logicque.ui.theme.Typography
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun UserPostView(scrollState: ScrollState, post: UserPost?, loading: Boolean) {
-  if (loading) {
-    ShimmerVerticalView(shimmerSize = 250.dp, itemsSize = 10)
-  } else {
-    Column(
-      modifier = Modifier.verticalScrollbar(scrollState)
-    ) {
-      post?.data?.take(20)?.forEachIndexed { i, it ->
+fun UserPostView(
+  modifier: Modifier,
+  post: UserPost?,
+  loading: Boolean,
+  useFilterTag: Boolean = false,
+  header: @Composable (LazyItemScope.() -> Unit),
+  footer: @Composable (LazyItemScope.() -> Unit)
+) {
+  LazyColumn(
+    modifier = modifier,
+  ) {
+    item { header() }
+    if (loading) {
+      item { ShimmerVerticalView(shimmerSize = 250.dp, itemsSize = 10) }
+    } else {
+      items(post?.data?.size ?: 0) {
+        val data = post?.data!![it]
         Box(
           modifier = Modifier
             .padding(bottom = 10.dp)
@@ -64,29 +77,44 @@ fun UserPostView(scrollState: ScrollState, post: UserPost?, loading: Boolean) {
               .fillMaxSize()
               .padding(10.dp),
           ) {
-            OwnerView(it = it)
+            OwnerView(it = data)
             HorizontalDivider(thickness = 1.dp, color = Color.Black)
             5.SpaceHeight()
-            ImageDescView(it = it)
+            ImageDescView(it = data)
             5.SpaceHeight()
             HorizontalDivider(thickness = 1.dp, color = Color.Black)
             5.SpaceHeight()
             LazyRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-              items(it?.tags?.size ?: 0) { tIndex ->
-                val tag = it?.tags?.get(tIndex)
-                ElevatedButton(onClick = {}, modifier = Modifier.height(30.dp)) {
-                  Text(text = "$tag", style = Typography.labelSmall)
+              items(data?.tags?.size ?: 0) { tIndex ->
+                val tag = data?.tags?.get(tIndex)
+                TextButton(
+                  modifier = Modifier
+                    .background(
+                      color = if (mainViewModel.filterLikeKey.contains(tag) && useFilterTag) Color.Green else Color.Unspecified,
+                      shape = RoundedCornerShape(90.dp)
+                    )
+                    .height(30.dp),
+                  onClick = {},
+                  border = BorderStroke(width = 1.dp, color = Color.Gray),
+                ) {
+                  Text(
+                    "$tag",
+                    style = Typography.labelSmall,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1
+                  )
                 }
               }
             }
             10.SpaceHeight()
             HorizontalDivider(thickness = 1.dp, color = Color.Black)
             5.SpaceHeight()
-            LikeView(it = it)
+            LikeView(it = data)
           }
         }
       }
     }
+    item { footer() }
   }
 }
 
@@ -145,15 +173,15 @@ private fun LikeView(it: PostData?) {
       .fillMaxWidth()
       .padding(end = 10.dp, start = 10.dp)
   ) {
-    val hasLike = MainModel.mainViewModel.likeList.find { p -> p.uid == it?.id } != null
+    val hasLike = mainViewModel.likeList.find { p -> p.uid == it?.id } != null
     val totalLike = if (hasLike) (it?.likes ?: 0) + 1 else it?.likes
     Text(text = "$totalLike Likes")
     Row(modifier = Modifier.clickable {
       if (hasLike) {
-        MainModel.mainViewModel.unlike(it?.id)
+        mainViewModel.unlike(it?.id)
         return@clickable
       }
-      MainModel.mainViewModel.like(postId = it?.id, data = it)
+      mainViewModel.like(postId = it?.id, data = it)
     }) {
       Icon(
         imageVector = Icons.Rounded.Favorite,

@@ -18,6 +18,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 
@@ -30,7 +31,7 @@ data class TabBarIconItem(
 
 @Composable
 fun TabView(
-  tabBarItems: List<TabBarIconItem>, navController: NavController, tabHeight: Int? = null
+  tabBarItems: List<TabBarIconItem>, navController: NavController, tabHeight: Dp? = null
 ) {
   var selectedTabIndex by rememberSaveable {
     mutableIntStateOf(0)
@@ -39,9 +40,7 @@ fun TabView(
   NavigationBar(
     windowInsets = WindowInsets.navigationBars,
     modifier = if (tabHeight == null) Modifier.clip(shape = RoundedCornerShape(10.dp)) else Modifier
-      .height(
-        tabHeight.dp
-      )
+      .height(tabHeight)
       .clip(shape = RoundedCornerShape(10.dp))
   ) {
     tabBarItems.forEachIndexed { index, tabBarItem ->

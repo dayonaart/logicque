@@ -47,7 +47,11 @@ internal interface Services {
 
   @Headers("Content-Type: application/json; charset=utf-8", "app-id:664daa2b9aecd0ce8ada897c")
   @GET(GET_USER_POST)
-  suspend fun getUserPost(@Path("id") id: String, @Query("limit") limit: Int): Response<UserPost>
+  suspend fun getUserPost(
+    @Path("id") id: String,
+    @Query("page") page: Int,
+    @Query("limit") limit: Int
+  ): Response<UserPost>
 
   @Headers("Content-Type: application/json; charset=utf-8", "app-id:664daa2b9aecd0ce8ada897c")
   @GET(GET_POST)

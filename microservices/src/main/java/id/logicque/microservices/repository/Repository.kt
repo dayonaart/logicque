@@ -10,5 +10,5 @@ interface Repository {
   fun getUsers(page: Int = 0, limit: Int = 20): Flow<Core<User>>
   fun getPost(page: Int = 0, limit: Int = 20): Flow<Core<UserPost>>
   fun getUserDetail(id: String): Flow<Core<UserDetail>>
-  fun getUserPost(id: String, limit: Int = 20): Flow<Core<UserPost?>>
+  fun getUserPost(id: String, page: Int = 0, limit: Int = 20): Flow<Core<UserPost?>>
 }
