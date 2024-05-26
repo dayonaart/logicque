@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.List
+import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -21,9 +22,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import id.test.logicque.MainModel.mainViewModel
 import id.test.logicque.ui.custom.UserPostView
+import id.test.logicque.ui.theme.Typography
 import kotlinx.coroutines.launch
 
 object Feed {
@@ -33,12 +36,26 @@ object Feed {
     Scaffold(
       modifier = Modifier
         .padding(innerPad)
-        .padding(horizontal = 20.dp)
+        .padding(horizontal = 20.dp), topBar = {
+        Card(
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 10.dp)
+        ) {
+          Text(
+            text = "News",
+            style = Typography.titleLarge,
+            modifier = Modifier
+              .fillMaxWidth()
+              .padding(vertical = 10.dp),
+            textAlign = TextAlign.Center
+          )
+        }
+      }
     ) {
       UserPostView(
         modifier = Modifier
-          .padding(it)
-          .padding(top = 10.dp),
+          .padding(it),
         post = mainViewModel.filterPost,
         loading = mainViewModel.getPostLoading,
         header = {}, footer = {

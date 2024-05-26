@@ -126,7 +126,7 @@ object UserDetail {
       },
       modifier = Modifier
         .fillMaxWidth()
-        .padding(vertical = 20.dp),
+        .padding(top = 20.dp),
       value = mainViewModel.searchController,
       onValueChange = mainViewModel::onSearchPostChange,
       shape = RoundedCornerShape(25.dp),

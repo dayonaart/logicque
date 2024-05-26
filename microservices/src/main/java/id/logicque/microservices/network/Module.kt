@@ -18,14 +18,7 @@ internal object Module {
   fun repo(): Services {
     val timeoutInSeconds = 30000L
     val logging = HttpLoggingInterceptor()
-//    logging.setLevel(HttpLoggingInterceptor.Level.BODY)
-//    when (logLevel) {
-//      LogLevel.NONE -> logging.setLevel(HttpLoggingInterceptor.Level.NONE)
-//      LogLevel.HEADER -> logging.setLevel(HttpLoggingInterceptor.Level.HEADERS)
-//      LogLevel.BODY -> logging.setLevel(HttpLoggingInterceptor.Level.BODY)
-//      LogLevel.RESPONSE -> logging.setLevel(HttpLoggingInterceptor.Level.NONE)
-//      LogLevel.FULL -> logging.setLevel(HttpLoggingInterceptor.Level.BODY)
-//    }
+    logging.setLevel(HttpLoggingInterceptor.Level.BODY)
     val http = OkHttpClient().newBuilder().addInterceptor(logging)
       .connectTimeout(timeoutInSeconds, TimeUnit.SECONDS)
       .readTimeout(timeoutInSeconds, TimeUnit.SECONDS)
@@ -36,7 +29,7 @@ internal object Module {
   }
 }
 
-internal interface Services {
+interface Services {
   @Headers("Content-Type: application/json; charset=utf-8", "app-id:664daa2b9aecd0ce8ada897c")
   @GET(GET_USERS)
   suspend fun getUser(@Query("page") page: Int, @Query("limit") limit: Int): Response<User>

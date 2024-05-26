@@ -88,7 +88,7 @@ class MainViewModel : ViewModel() {
     MainModel.mainViewModel = this
     database = Room.databaseBuilder(
       context,
-      AppDatabase::class.java, "User"
+      AppDatabase::class.java, "LOGICQUE"
     ).allowMainThreadQueries().build()
     getUser()
     getPost()

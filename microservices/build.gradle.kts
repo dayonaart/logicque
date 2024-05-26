@@ -15,5 +15,8 @@ dependencies {
   implementation(libs.okhttp)
   implementation(libs.logging.interceptor)
   implementation(libs.kotlinx.coroutines.core)
+  //TEST
+  testImplementation(libs.junit.v412)
+  testImplementation(libs.junit.jupiter)
 }
 
